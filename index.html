@@ -162,8 +162,8 @@
             <p class="eyebrow">Windows desktop preview</p>
             <h2 id="download-title">Make room for your next idea.</h2>
             <p>
-              The Windows ZIP edition is being qualified. It bundles the local
-              runtime: extract the complete folder and launch CosmosBuild.exe.
+              The Windows Setup EXE is being qualified. One download includes
+              the core MSI and local runtime; no ZIP extraction is needed.
               No separate Docker Desktop, WSL, Node or Python installation.
             </p>
             <a
@@ -172,10 +172,10 @@
               >Check release availability <span aria-hidden="true">↗</span></a
             >
             <p class="subtle">
-              Windows x64 ZIP preview · download not yet available
+              Windows x64 Setup preview · download not yet available
             </p>
             <p class="subtle">
-              The public ZIP download will appear here after startup,
+              The public Setup EXE download will appear here after installation,
               language-download and redistribution checks are complete.
               This page is public; it is not an announcement of a ready installer.
             </p>
@@ -189,14 +189,20 @@
                 public CosmosBuild-Downloads release repository.
               </li>
               <li>
-                <strong>Choose your languages on first launch.</strong>
+                <strong>Choose your languages during setup.</strong>
                 JavaScript is bundled. Optional .NET, Java, Rust, Go and Python
                 packs download separately and are verified before use.
               </li>
               <li>
-                <strong>Extract-and-run, not MSI installation.</strong>
-                Keep the EXE with the rest of the extracted folder. Additional
-                languages can be selected from the app's tray menu.
+                <strong>One Setup EXE with the MSI included.</strong>
+                Setup installs the application and creates shortcuts. Run setup
+                again to add or repair optional languages.
+              </li>
+              <li>
+                <strong>Internet access is required during setup.</strong>
+                After you accept Microsoft's emulator terms, setup downloads
+                the local database directly from Microsoft and caches it for
+                later use. No Docker Desktop or WSL installation is needed.
               </li>
               <li>
                 Quit the existing app from its tray menu before upgrading.
@@ -290,7 +296,7 @@
           <summary>Where is the GitHub Pages site?</summary>
           <p>
             This public site is hosted from CosmosBuild-Downloads. The application
-            source repository remains private. ZIP and language-pack downloads
+            source repository remains private. Setup and language-pack downloads
             will be published only after their release checks pass.
           </p>
         </details>
