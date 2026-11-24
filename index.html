@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="assets/cosmos-db.svg" type="image/svg+xml" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Describe an app. Review a plan. Build and preview locally, keep your code in GitHub, and publish to your Azure account when you're ready."
+    />
+    <title>CosmosBuild — Your idea. Your app. Your code.</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="nav wrap">
+      <a class="brand" href="#" aria-label="CosmosBuild home"
+        ><img class="mark" src="assets/cosmos-db.svg" alt="" />CosmosBuild<span
+          class="badge"
+          >Preview</span
+        ></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#how">How it works</a><a href="#questions">Questions</a
+        ><a class="button small" href="#download">Get the preview</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero wrap">
+        <div class="eyebrow">
+          <span aria-hidden="true"></span> From an idea to something you can use
+        </div>
+        <h1>You have the idea.<br /><em>Let's build the app.</em></h1>
+        <p class="lead">
+          Describe what you need in everyday language. Review the plan, try your
+          app on your computer, and make it your own. Keep the code. Bring in a
+          developer whenever you're ready.
+        </p>
+        <div class="actions">
+          <a class="button" href="#download"
+            >Get CosmosBuild for Windows <span aria-hidden="true">↗</span></a
+          ><a class="text-link" href="#demo"
+            >See it in action <span aria-hidden="true">↓</span></a
+          >
+        </div>
+        <p class="subtle">
+          A desktop preview powered by GitHub Copilot. Azure is optional until
+          you publish.
+        </p>
+        <div class="pills" aria-label="Product benefits">
+          <span>Your code in your GitHub</span><span>Try it locally first</span
+          ><span>Your Azure subscription</span>
+        </div>
+      </section>
+      <section id="demo" class="demo wrap" aria-labelledby="demo-title">
+        <div class="section-top">
+          <div>
+            <p class="eyebrow">A guided experience, not a blank editor</p>
+            <h2 id="demo-title">Meet your next little time-saver.</h2>
+          </div>
+          <p>
+            A client tracker. A team task board.<br />Start with the problem you
+            want to solve.
+          </p>
+        </div>
+        <div class="screen">
+          <div class="screen-bar">
+            <span aria-hidden="true">● ● ●</span
+            ><span>CosmosBuild / Client tracker</span><span>Local preview</span>
+          </div>
+          <video
+            controls
+            playsinline
+            preload="none"
+            poster="assets/cosmosbuild.png"
+            aria-label="Illustrative CosmosBuild walkthrough using sample data"
+          >
+            <source src="assets/cosmosbuild.webm" type="video/webm" />
+            <p>
+              Your browser cannot play this video.
+              <a href="assets/cosmosbuild.png">View the product screenshot</a>.
+            </p>
+          </video>
+        </div>
+        <p class="caption">
+          Illustrative walkthrough of the current development UI with synthetic
+          sample data. Planning and build states are simulated for this short
+          demo; it is not a timed generation or deployment recording.
+        </p>
+      </section>
+      <section id="how" class="wrap section" aria-labelledby="how-title">
+        <p class="eyebrow">You stay in control</p>
+        <h2 id="how-title">Three steps. No terminal required.</h2>
+        <div class="steps">
+          <article>
+            <span class="number">01</span>
+            <h3>Describe it</h3>
+            <p>
+              Tell CosmosBuild what your app should do. It turns your idea into
+              a plan you can review before any implementation begins.
+            </p>
+          </article>
+          <article>
+            <span class="number">02</span>
+            <h3>Try it. Refine it.</h3>
+            <p>
+              Approve the plan, then explore your app in a local preview. Ask
+              for changes in plain language. The current development version
+              builds on existing code rather than starting over.
+            </p>
+          </article>
+          <article>
+            <span class="number">03</span>
+            <h3>Keep it. Share it.</h3>
+            <p>
+              Your source and engineering documents go to your private GitHub
+              repository. When you're ready, separately approve publishing to
+              your own Azure account.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section class="ownership section" aria-labelledby="ownership-title">
+        <div class="wrap split">
+          <div>
+            <p class="eyebrow">An app with a future</p>
+            <h2 id="ownership-title">
+              Start without a developer.<br />Continue with one.
+            </h2>
+            <p>
+              You get more than a hosted screen. The project includes source
+              code, specifications, tests, architecture decisions, and
+              deployment instructions that a developer can take forward.
+            </p>
+            <a
+              class="text-link"
+              href="#questions"
+              >How it works <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <ul class="deliverables">
+            <li>
+              <span>✓</span>Ordinary source code, not a proprietary app format
+            </li>
+            <li><span>✓</span>Specifications and an implementation plan</li>
+            <li><span>✓</span>Automated tests and a local preview</li>
+            <li>
+              <span>✓</span>Azure infrastructure and operating instructions
+            </li>
+            <li><span>✓</span>Automatic backups with a choice of frequency</li>
+          </ul>
+        </div>
+      </section>
+      <section
+        id="download"
+        class="wrap section"
+        aria-labelledby="download-title"
+      >
+        <div class="download-card">
+          <div>
+            <p class="eyebrow">Windows desktop preview</p>
+            <h2 id="download-title">Make room for your next idea.</h2>
+            <p>
+              The Windows ZIP edition is being qualified. It bundles the local
+              runtime: extract the complete folder and launch CosmosBuild.exe.
+              No separate Docker Desktop, WSL, Node or Python installation.
+            </p>
+            <a
+              class="button"
+              href="https://github.com/TheovanKraay/CosmosBuild-Downloads/releases"
+              >Check release availability <span aria-hidden="true">↗</span></a
+            >
+            <p class="subtle">
+              Windows x64 ZIP preview · download not yet available
+            </p>
+            <p class="subtle">
+              The public ZIP download will appear here after startup,
+              language-download and redistribution checks are complete.
+              This page is public; it is not an announcement of a ready installer.
+            </p>
+          </div>
+          <div class="download-notes">
+            <h3>Before you download</h3>
+            <ul>
+              <li>
+                <strong>No GitHub account needed for downloads.</strong>
+                Qualified binaries and language packs will be hosted in the
+                public CosmosBuild-Downloads release repository.
+              </li>
+              <li>
+                <strong>Choose your languages on first launch.</strong>
+                JavaScript is bundled. Optional .NET, Java, Rust, Go and Python
+                packs download separately and are verified before use.
+              </li>
+              <li>
+                <strong>Extract-and-run, not MSI installation.</strong>
+                Keep the EXE with the rest of the extracted folder. Additional
+                languages can be selected from the app's tray menu.
+              </li>
+              <li>
+                Quit the existing app from its tray menu before upgrading.
+                Projects are stored separately from the installed application.
+              </li>
+              <li>
+                The current target is at least 8 GB RAM; 16 GB and hardware
+                virtualization are recommended. Low-powered PC performance
+                is not yet qualified. Startup and compilation can be slow.
+                Setup checks disk space for the selected languages.
+              </li>
+              <li>
+                GitHub Copilot access and an internet connection are required
+                for AI generation. Windows may show an unrecognized-publisher
+                warning for this unsigned preview.
+              </li>
+            </ul>
+            <a
+              href="https://github.com/TheovanKraay/CosmosBuild-Downloads/releases"
+              >Public release repository ↗</a
+            >
+            <p>macOS installers are not published on this page yet.</p>
+          </div>
+        </div>
+      </section>
+      <section
+        id="questions"
+        class="wrap section questions"
+        aria-labelledby="questions-title"
+      >
+        <p class="eyebrow">A few things worth knowing</p>
+        <h2 id="questions-title">
+          Simple on the outside. Clear about the details.
+        </h2>
+        <details>
+          <summary>Do I need to know how to code?</summary>
+          <p>
+            No coding is required to describe an app, review its plan, or use
+            the preview. This is still a prototype: complex requirements,
+            organizational policies and production readiness can need developer
+            or administrator help.
+          </p>
+        </details>
+        <details>
+          <summary>Is everything on my computer?</summary>
+          <p>
+            Files, the local preview and test execution are local. AI requests
+            go to GitHub Copilot, source backups go to GitHub, and publishing
+            creates resources in your Azure subscription. An installed app is
+            not an offline AI model.
+          </p>
+        </details>
+        <details>
+          <summary>What does it cost?</summary>
+          <p>
+            Copilot generation uses your GitHub Copilot allowance. Publishing
+            may create paid Azure resources, and repository workflows may use
+            GitHub Actions. You review deployment separately. No price estimate
+            is implied by installing the preview.
+          </p>
+        </details>
+        <details>
+          <summary>What gets backed up?</summary>
+          <p>
+            Source code and engineering documents, not database contents or
+            credentials. In the current source version, the default is a few key
+            checkpoints. You can choose more frequent draft backups or only
+            tested versions using Backup settings.
+          </p>
+        </details>
+        <details>
+          <summary>Can I move on without CosmosBuild?</summary>
+          <p>
+            Yes. Download the source or clone your GitHub repository. A
+            developer can work on the conventional application and its
+            deployment assets. Automatic merging of edits made outside
+            CosmosBuild is not implemented; divergent changes are not silently
+            overwritten.
+          </p>
+        </details>
+        <details>
+          <summary>Which apps can it build today?</summary>
+          <p>
+            The development version supports JavaScript, Java, .NET, Go, Rust
+            and Python, with Azure App Service and Cosmos DB. It does not promise every framework,
+            arbitrary hosting target, or production-ready multi-user
+            permissions. Review the generated assumptions and tests.
+          </p>
+        </details>
+        <details>
+          <summary>Where is the GitHub Pages site?</summary>
+          <p>
+            This public site is hosted from CosmosBuild-Downloads. The application
+            source repository remains private. ZIP and language-pack downloads
+            will be published only after their release checks pass.
+          </p>
+        </details>
+      </section>
+    </main>
+    <footer class="wrap">
+      <a class="brand" href="#">CosmosBuild</a>
+      <p>
+        Built with GitHub Copilot, Spec Kit, and Azure Cosmos DB.<br />Preview
+        software. Your approvals matter.
+      </p>
+      <a href="https://github.com/TheovanKraay/CosmosBuild-Downloads"
+        >Public downloads repository ↗</a
+      >
+    </footer>
+  </body>
+</html>
