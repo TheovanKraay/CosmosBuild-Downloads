@@ -58,6 +58,14 @@ jobs:
           status="$(curl -q -sS -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$GH_REPO/releases/tags/$STAGING_TAG")"
           test "$status" = 404
           echo "Draft storage is inaccessible anonymously."
+      - name: Verify read-only source access before scheduling builds
+        uses: actions/checkout@v4
+        with:
+          repository: TheovanKraay/cosmosbuild
+          ref: ${{ inputs.source_sha }}
+          path: source
+          ssh-key: ${{ secrets.COSMOSBUILD_SOURCE_READ_KEY }}
+          persist-credentials: false
 
   sdk:
     needs: staging
