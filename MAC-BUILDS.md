@@ -16,7 +16,9 @@ the pinned emulator terms. Each run uses a new draft release. The workflow
 checks that the draft is inaccessible anonymously before building; logs and
 outputs stay in that draft. Do not publish it while a build is running. Failed
 phases report a nonzero exit and retain their log privately, with known GitHub
-token values redacted. Rerun the whole workflow, not only failed jobs.
+token values redacted. Logs always include the command exit status, even for
+silent commands, so an empty-log upload cannot turn successful staging into a
+failed workflow. Rerun the whole workflow, not only failed jobs.
 
 All six SDKs are qualified on native ARM Linux, and five optional language
 packs are exported. The Mac job assembles an unsigned DMG but **does not run the

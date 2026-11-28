@@ -15,7 +15,7 @@ set +e
 result=$?
 set -e
 
-node - "$log" <<'NODE'
+node - "$log" "$result" <<'NODE'
 const fs = require("node:fs");
 const path = process.argv[2];
 let text = fs.readFileSync(path, "utf8");
@@ -23,13 +23,17 @@ for (const name of ["GH_TOKEN", "GITHUB_TOKEN"]) {
   const value = process.env[name];
   if (value) text = text.replaceAll(value, "[REDACTED]");
 }
-fs.writeFileSync(path, text);
+fs.writeFileSync(path, `Build command exit status: ${process.argv[3]}\n${text}`);
 NODE
 if [ "$(gh release view "$STAGING_TAG" --repo "$GH_REPO" --json isDraft --jq .isDraft)" != true ]; then
   echo "::error::Staging is no longer private; refusing log upload."
   exit 1
 fi
-gh release upload "$STAGING_TAG" "$log" --repo "$GH_REPO" --clobber
+if ! gh release upload "$STAGING_TAG" "$log" --repo "$GH_REPO" --clobber; then
+  echo "::error::Private log upload failed for phase $phase (command exit $result)."
+  if [ "$result" -ne 0 ]; then exit "$result"; fi
+  exit 1
+fi
 if [ "$result" -ne 0 ]; then
   echo "::error::Build phase $phase failed (exit $result). Inspect its log in the private draft release."
   exit "$result"

@@ -7,7 +7,7 @@ on:
         description: Full immutable commit from the private cosmosbuild source repository
         type: string
         required: true
-        default: 91d2640b3fe3626dcf2713480994173f9f44c02d
+        default: f933702186662f19be0c515c7aa7316aabe9018c
       accept_emulator_terms:
         description: Accept the pinned Microsoft emulator terms for isolated Linux SDK qualification
         type: boolean
