@@ -1,0 +1,43 @@
+name: Check Mac build runners
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-arm64:
+    name: Check native ARM Linux build host
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    steps:
+      - name: Verify architecture and container tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = aarch64
+          uname -sm
+          docker version --format '{{.Server.Os}}/{{.Server.Arch}}'
+          node --version
+          df -h "$RUNNER_TEMP"
+
+  mac-arm64:
+    name: Check Apple Silicon packaging host
+    runs-on: macos-15
+    timeout-minutes: 5
+    steps:
+      - name: Verify architecture and native packaging tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          uname -sm
+          for tool in otool install_name_tool codesign hdiutil clang; do
+            command -v "$tool"
+          done
+          brew --version
+          node --version
+          printf 'CPU count: '; sysctl -n hw.ncpu
+          printf 'Memory bytes: '; sysctl -n hw.memsize
+          df -h "$RUNNER_TEMP"
