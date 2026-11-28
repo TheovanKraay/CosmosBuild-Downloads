@@ -54,9 +54,15 @@ jobs:
           gh release create "$STAGING_TAG" --draft --target "$WORKFLOW_SHA" \
             --title "UNVERIFIED Apple Silicon candidate $STAGING_TAG" \
             --notes "Private engineering candidate. Source: $SOURCE_SHA. Unsigned; full Mac runtime and connected onboarding smoke tests are NOT RUN. The free Mac runner has 7 GB RAM; CosmosBuild requires at least 8 GB. Verify on a suitable Mac before any publication. No source archives are uploaded."
-          test "$(gh release view "$STAGING_TAG" --json isDraft --jq .isDraft)" = true
-          status="$(curl -q -sS -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$GH_REPO/releases/tags/$STAGING_TAG")"
-          test "$status" = 404
+          if [ "$(gh release view "$STAGING_TAG" --json isDraft --jq .isDraft)" != true ]; then
+            echo "::error::Candidate storage was not confirmed as a draft; source builds are blocked."
+            exit 1
+          fi
+          status="$(curl -q -sS --retry 2 --connect-timeout 10 --max-time 30 -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$GH_REPO/releases/tags/$STAGING_TAG")"
+          if [ "$status" != 404 ]; then
+            echo "::error::Anonymous draft isolation returned HTTP $status, expected 404; source builds are blocked."
+            exit 1
+          fi
           echo "Draft storage is inaccessible anonymously."
       - name: Verify read-only source access before scheduling builds
         uses: actions/checkout@v4
