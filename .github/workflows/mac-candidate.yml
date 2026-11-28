@@ -1,0 +1,236 @@
+name: Build unverified Apple Silicon candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full immutable commit from the private cosmosbuild source repository
+        type: string
+        required: true
+        default: 91d2640b3fe3626dcf2713480994173f9f44c02d
+      accept_emulator_terms:
+        description: Accept the pinned Microsoft emulator terms for isolated Linux SDK qualification
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mac-candidate
+  cancel-in-progress: false
+
+env:
+  GH_REPO: ${{ github.repository }}
+  STAGING_TAG: mac-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+  SOURCE_SHA: ${{ inputs.source_sha }}
+  COSMOSBUILD_RELEASE_TAG: v0.4.1-preview.20261128
+  COSMOSBUILD_ACCEPT_EMULATOR_TERMS: ${{ inputs.accept_emulator_terms && '1' || '0' }}
+
+jobs:
+  staging:
+    if: github.repository == 'TheovanKraay/CosmosBuild-Downloads' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify private logging and failure propagation
+        run: node --test scripts/private-build-step.test.cjs
+      - name: Validate approval and create private candidate storage
+        shell: bash
+        env:
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$COSMOSBUILD_ACCEPT_EMULATOR_TERMS" = 1
+          gh release create "$STAGING_TAG" --draft --target "$WORKFLOW_SHA" \
+            --title "UNVERIFIED Apple Silicon candidate $STAGING_TAG" \
+            --notes "Private engineering candidate. Source: $SOURCE_SHA. Unsigned; full Mac runtime and connected onboarding smoke tests are NOT RUN. The free Mac runner has 7 GB RAM; CosmosBuild requires at least 8 GB. Verify on a suitable Mac before any publication. No source archives are uploaded."
+          test "$(gh release view "$STAGING_TAG" --json isDraft --jq .isDraft)" = true
+          status="$(curl -q -sS -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$GH_REPO/releases/tags/$STAGING_TAG")"
+          test "$status" = 404
+          echo "Draft storage is inaccessible anonymously."
+
+  sdk:
+    needs: staging
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript, python, dotnet, java, go, rust]
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      COSMOSBUILD_TEST_LANGUAGE: ${{ matrix.language }}
+      COSMOSBUILD_TEST_SDK_IMAGE: cosmosbuild-sdk:${{ matrix.language }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: TheovanKraay/cosmosbuild
+          ref: ${{ inputs.source_sha }}
+          path: source
+          ssh-key: ${{ secrets.COSMOSBUILD_SOURCE_READ_KEY }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Prepare pinned private source
+        run: |
+          bash scripts/private-build-step.sh "sdk-$COSMOSBUILD_TEST_LANGUAGE-prepare" bash -euo pipefail -c '
+            test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+            npm ci --ignore-scripts
+            npm run build:language-starters
+          '
+      - name: Build and qualify the native ARM SDK
+        run: |
+          bash scripts/private-build-step.sh "sdk-$COSMOSBUILD_TEST_LANGUAGE-qualify" bash -euo pipefail -c '
+            base="$(node -e "console.log(require(\"./language-runtimes.lock.json\").profiles[process.env.COSMOSBUILD_TEST_LANGUAGE].arm64Image)")"
+            docker build --platform linux/arm64 --build-arg "BASE=$base" -f "packaging/languages/$COSMOSBUILD_TEST_LANGUAGE/Dockerfile" -t "$COSMOSBUILD_TEST_SDK_IMAGE" .
+            docker build -f packaging/runtime/Preview.Dockerfile -t cosmosbuild-preview:cosmos-v1 .
+            docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator@sha256:db53613dae19d0a3d5ad50688d14aa6e957af082dafea56b52e1bd3a6b3f1406
+            npm test -- tests/language-sdk.test.ts tests/java-test-lifecycle.test.ts tests/language-container.test.ts tests/language-execution.test.ts
+          '
+      - name: Export qualified optional pack to the private draft
+        if: matrix.language != 'javascript'
+        run: |
+          bash scripts/private-build-step.sh "sdk-$COSMOSBUILD_TEST_LANGUAGE-export" bash -euo pipefail -c '
+            node scripts/build-language-pack.mjs "$COSMOSBUILD_TEST_LANGUAGE" arm64
+            gh release upload "$STAGING_TAG" ".packaging/language-packs/arm64/$COSMOSBUILD_TEST_LANGUAGE/output/"*.iso ".packaging/language-packs/arm64/$COSMOSBUILD_TEST_LANGUAGE/output/"*.json
+          '
+
+  appliance:
+    needs: staging
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: TheovanKraay/cosmosbuild
+          ref: ${{ inputs.source_sha }}
+          path: source
+          ssh-key: ${{ secrets.COSMOSBUILD_SOURCE_READ_KEY }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build and test the pinned private application
+        run: |
+          bash scripts/private-build-step.sh appliance-prepare bash -euo pipefail -c '
+            test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+            npm ci --ignore-scripts
+            npm run build:agent
+            npm run typecheck
+            npm test -- tests/process.test.ts tests/copilot.test.ts tests/health-contract.test.ts tests/runtime-contract.test.ts
+          '
+      - name: Build and stage the ARM Linux appliance
+        run: |
+          bash scripts/private-build-step.sh appliance-build bash -euo pipefail -c '
+            npm run build:appliance -- arm64
+            archive="$RUNNER_TEMP/appliance-arm64.tar.gz"
+            tar -czf "$archive" -C .packaging/appliance/arm64 manifest.json vmlinuz initramfs.gz runtime-images.iso licenses debian-packages.txt python-packages.txt azure-cli-packages.txt application-package.json
+            gh release upload "$STAGING_TAG" "$archive"
+          '
+
+  mac:
+    needs: [sdk, appliance]
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_CLIENT_ID: ${{ vars.COSMOSBUILD_GITHUB_CLIENT_ID }}
+      COSMOSBUILD_REQUIRE_GITHUB_REGISTRATION: "1"
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: TheovanKraay/cosmosbuild
+          ref: ${{ inputs.source_sha }}
+          path: source
+          ssh-key: ${{ secrets.COSMOSBUILD_SOURCE_READ_KEY }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Prepare native Mac tooling and qualified inputs
+        run: |
+          bash scripts/private-build-step.sh mac-prepare bash -euo pipefail -c '
+            test "$(uname -m)" = arm64
+            test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+            npm ci
+            brew list --versions qemu || brew install qemu
+            gh release download "$STAGING_TAG" --pattern appliance-arm64.tar.gz --dir "$RUNNER_TEMP"
+            mkdir -p .packaging/appliance/arm64 .packaging/mac/pack-assets
+            tar -xzf "$RUNNER_TEMP/appliance-arm64.tar.gz" -C .packaging/appliance/arm64
+            gh release download "$STAGING_TAG" --pattern "*.iso" --pattern "*.json" --dir .packaging/mac/pack-assets
+            node scripts/prepare-pack-catalogue.mjs .packaging/mac/pack-assets darwin-arm64 "$COSMOSBUILD_RELEASE_TAG" .packaging/mac/language-packs.json
+          '
+      - name: Assemble the unsigned engineering candidate
+        run: |
+          bash scripts/private-build-step.sh mac-package bash -euo pipefail -c '
+            export COSMOSBUILD_LANGUAGE_CATALOGUE_FILE="$PWD/.packaging/mac/language-packs.json"
+            npm run desktop:prepare
+            node scripts/prepare-mac.mjs
+            npm run test:packaging
+            npm run desktop:package -- --mac --arm64 --publish never --config.forceCodeSigning=false --config.directories.app=.packaging/mac/app
+          '
+      - name: Stage candidate without claiming Mac runtime verification
+        run: |
+          bash scripts/private-build-step.sh mac-stage bash -euo pipefail -c '
+            shopt -s nullglob
+            installers=(dist/*.dmg)
+            test "${#installers[@]}" -eq 1
+            candidate="${installers[0]%.dmg}-UNVERIFIED.dmg"
+            mv "${installers[0]}" "$candidate"
+            shasum -a 256 "$candidate" > "$candidate.sha256"
+            printf "%s\n" \
+              "UNSIGNED AND NOT MAC-RUNTIME-VERIFIED" \
+              "Source: $SOURCE_SHA" \
+              "ARM Linux SDK qualification passed for all six languages." \
+              "Mac runtime and connected onboarding smoke tests were not run: this host has 7 GB RAM, below the unchanged 8 GB application minimum." \
+              "Before publication: verify installation, all selected language packs, local app generation/test/preview, restart persistence and real onboarding on an Apple Silicon Mac with at least 8 GB RAM (16 GB recommended)." \
+              "Use the supplied ISO folder in Choose languages. Do not publish before signing/notarization and source/notices review." \
+              > dist/MAC-VERIFICATION-REQUIRED.txt
+            gh release upload "$STAGING_TAG" "$candidate" "$candidate.sha256" dist/MAC-VERIFICATION-REQUIRED.txt .packaging/mac/language-packs.json
+          '
+
+  cleanup:
+    needs: mac
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Remove the private intermediate appliance
+        run: |
+          test "$(gh release view "$STAGING_TAG" --json isDraft --jq .isDraft)" = true
+          gh release delete-asset "$STAGING_TAG" appliance-arm64.tar.gz --yes
